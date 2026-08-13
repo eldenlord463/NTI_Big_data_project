@@ -1,112 +1,236 @@
-# E-Commerce PySpark Pipeline — Split into 3 Notebooks + Airflow
+<div align="center">
 
-Your original single notebook (`ecommerce_pyspark_project2.ipynb`, 97 cells)
-split into 3 stage notebooks, orchestrated by an Airflow DAG. **No original
-logic was changed** — every original cell was copied verbatim (diffed
-cell-by-cell to confirm), except the single dependency-install cell, which
-was intentionally revised per-notebook (see below, at your request). All
-other additions are small "glue" cells, clearly marked
-`# --- Added for orchestration ---`, needed so each notebook can run
-independently instead of sharing one kernel's memory.
+# 🛒 E-COMMERCE BIG DATA ANALYTICS & MACHINE LEARNING
+### *Turning Data into Insights • Predicting Tomorrow • Driving Growth*
 
-## Folder structure
+[![PySpark](https://img.shields.io/badge/PySpark-3.x-orange.svg?style=for-the-badge&logo=apachespark)](https://spark.apache.org/)
+[![Hadoop HDFS](https://img.shields.io/badge/Hadoop-HDFS-yellow.svg?style=for-the-badge&logo=apachehadoop)](https://hadoop.apache.org/)
+[![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.x-017CEE.svg?style=for-the-badge&logo=apacheairflow)](https://airflow.apache.org/)
+[![Docker](https://img.shields.io/badge/Docker-Containers-blue.svg?style=for-the-badge&logo=docker)](https://www.docker.com/)
+[![Spark MLlib](https://img.shields.io/badge/Spark%20MLlib-XGBoost-red.svg?style=for-the-badge&logo=xgboost)](https://xgboost.readthedocs.io/)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB.svg?style=for-the-badge&logo=python)](https://python.org)
+[![Dashboard](https://img.shields.io/badge/Web%20Dashboard-HTML5%2FCSS3-E34F26.svg?style=for-the-badge&logo=html5)](web_dashboard.html)
 
-```
-ecommerce_pyspark_pipeline/
-├── preprocessing_EDA/
-│   └── Pre_and_eda.ipynb      Stage 1 — original cells 1–46 (setup, data
-│                              understanding, data quality, EDA's 3 plots,
-│                              preprocessing, feature engineering incl.
-│                              session-level table). Ends by saving
-│                              df_clean.parquet + session_dataset.parquet.
-├── ml/
-│   └── ML_models.ipynb        Stage 2 — original cells 47–69 (regression,
-│                              classification, the 5 ML plots, results
-│                              summary, conclusions). Loads
-│                              session_dataset.parquet instead of re-deriving it.
-├── sql/
-│   └── SQL_analysis.ipynb     Stage 3 — original cells 70–96 (SQL 1–10 +
-│                              their visualizations). Loads df_clean.parquet
-│                              and session_dataset.parquet, registers them
-│                              as the same `events` / `sessions` temp views
-│                              the original queries use.
-└── dags/
-    └── ecommerce_pipeline_dag.py   Airflow DAG that runs the 3 notebooks
-                                    in dependency order via papermill.
-```
+---
 
-## Why this split
+[ 👥 Team Roster ](#-meet-the-team) • [ 🏗️ System Architecture ](#️-system-architecture--proposal) • [ ⚡ Pipeline Split ](#-notebook-split--architecture) • [ 🚀 Quick Start ](#-getting-started) • [ 📊 Web Dashboard ](#-interactive-web-dashboard)
 
-- **ML** only ever touches `session_dataset` (never re-reads the raw HDFS CSV).
-- **SQL** only ever touches `df_clean` and `session_dataset`.
-- Both depend on Stage 1, but not on each other → they can run **in
-  parallel** once Stage 1 finishes.
+</div>
 
-## Dependency install (revised, per-notebook)
+---
 
-The original notebook had one install cell (cell 0) that installed both
-`pyarrow` and `xgboost[spark]` for the whole thing. Since each split notebook
-runs in its own kernel, that cell was replaced with a **scoped install cell
-in each notebook**, installing only what that notebook actually calls:
+## 🌟 Executive Summary & Core Pillars
 
-| Notebook | Installs | Why |
-|---|---|---|
-| `Pre_and_eda.ipynb` | `pyarrow` | EDA plots call `.toPandas()`; no xgboost used |
-| `ML_models.ipynb` | `pyarrow`, `xgboost[spark]` | `.toPandas()` for plots **and** `SparkXGBRegressor`/`SparkXGBClassifier` |
-| `SQL_analysis.ipynb` | `pyarrow` | Each SQL query's viz calls `.toPandas()`; no xgboost used |
+This repository delivers an end-to-end, enterprise-grade **Big Data Analytics & Distributed Machine Learning Pipeline** engineered to process **43+ Million E-Commerce Clickstream Events (~5.6 GB)**. The architecture transitions raw HDFS store files through scalable PySpark transformation, Spark SQL analytics, MLlib machine learning, and Airflow orchestration, producing an interactive executive dashboard.
 
-Both packages are on PyPI (verified available) — `pyarrow` and `xgboost`
-(whose `[spark]` extra provides `xgboost.spark`).
+<div align="center">
 
-## Data hand-off between notebooks
+| 🗄️ DATA DRIVEN | ⚙️ SMART ANALYTICS | 🧠 MACHINE LEARNING | 📈 BUSINESS IMPACT |
+| :--- | :--- | :--- | :--- |
+| Collect, store and manage large-scale e-commerce data on distributed HDFS clusters. | Uncover patterns, trends and customer behavior using Spark SQL structured queries. | Build predictive models for classification and regression using Spark MLlib & XGBoost. | Deliver actionable insights and boost business performance with an interactive HTML dashboard. |
 
-Stage 1 writes:
-- `df_clean.parquet`
-- `session_dataset.parquet`
+</div>
 
-to `DATA_DIR` (default `/tmp/ecommerce_pipeline/data`, overridable with the
-`ECOMM_DATA_DIR` env var). Stages 2 and 3 read them back with
-`spark.read.parquet(...)` in their setup cell instead of rebuilding them.
+---
 
-## Running manually (without Airflow)
+## 👥 Meet the Team
 
-Each notebook is fully standalone — just run it top to bottom:
+<div align="center">
 
-1. `preprocessing_EDA/Pre_and_eda.ipynb`
-2. `ml/ML_models.ipynb` and `sql/SQL_analysis.ipynb` (either order, or in
-   parallel)
+![NTI Big Data Team](team_banner.jpeg)
 
-## Running with Airflow
+</div>
 
-```
-ecommerce_pipeline_dag.py
-        preprocess_and_eda
-              /    \
-      ml_models   sql_analysis   (parallel)
+### 🌟 Project Contributors & Roles
+
+| Avatar / Role | Member Name | Core Responsibilities & Contributions |
+| :---: | :--- | :--- |
+| 👑 **Team Leader** | **Omar Mahmoud Elsayed** | Team Leader • Presentation • EDA & Feature Engineering |
+| ⚡ **Spark SQL Lead** | **Omar Hassan Ibrahim** | Spark SQL Queries, Aggregations & Analytical Views |
+| 🐘 **Data Engineer** | **Amr Mostafa Mohamed** | HDFS Storage Cluster Setup & Data Preprocessing Pipeline |
+| 📊 **Viz Specialist** | **Omar Emad Salah** | Executive Presentation Deck & Data Visualizations |
+| 🧠 **ML Specialist** | **Ewan Hany** | Spark MLlib & XGBoost Machine Learning Models |
+| 🔄 **Airflow Architect**| **David Wagih** | Apache Airflow DAG Orchestration & Automation Workflow |
+
+---
+
+## 🏗️ System Architecture & Proposal
+
+<div align="center">
+
+![End-to-End Data Engineering Workflow](architecture_proposal.jpeg)
+
+</div>
+
+### 🔄 End-to-End Pipeline Workflow
+
+```mermaid
+flowchart LR
+    A[📦 Kaggle Data\n5.6GB / 43M Rows] --> B[🐘 Hadoop HDFS\n/data/raw/]
+    B --> C[⚡ PySpark Engine\nPre & EDA Stage]
+    C --> D[💾 Parquet Storage\n/data/processed/]
+    D --> E[📊 Spark SQL Stage\nAnalytics & Views]
+    D --> F[🤖 Spark MLlib Stage\nXGBoost Regressor/Classifier]
+    E --> G[🎨 Matplotlib & Web Viz]
+    F --> G
+    G --> H[💻 Interactive Dashboard\nweb_dashboard.html]
+    
+    subgraph Airflow ["🔄 Apache Airflow Orchestration (dags/ecommerce_pipeline_dag.py)"]
+        C
+        E
+        F
+    end
 ```
 
-1. Copy `ecommerce_pyspark_pipeline/` into your Airflow `dags/` folder (or
-   set `ECOMM_PROJECT_ROOT` to wherever you put it).
-2. On the workers: `pip install papermill ipykernel pyspark`
-   (the notebooks themselves install `pyarrow` / `xgboost[spark]` in their
-   own scoped install cell — see above).
-3. Make sure `DATA_DIR` is a path every worker/task can read/write (a shared
-   volume, or an HDFS path if you point `DATA_DIR` at `hdfs://...`).
-4. Trigger the `ecommerce_pyspark_pipeline` DAG in the Airflow UI, or:
+---
+
+### 📋 Detailed Stage Breakdown
+
+1. **Data Source (Kaggle Dataset)**
+   - **Scale**: Multi-file e-commerce event log containing over **43M+ rows** (~5.6 GB).
+   - **Schema**: User action events (`view`, `cart`, `purchase`), timestamps, product IDs, category IDs, prices, user session UUIDs.
+
+2. **Distributed Storage (Hadoop HDFS)**
+   - Stored in raw format under `/data/raw/` on DataNodes within Docker containers.
+   - High-throughput, fault-tolerant, scalable read operations for PySpark workers.
+
+3. **Batch Processing Engine (PySpark)**
+   - Cleans missing categorical values, parses timestamps into dimensional features.
+   - Aggregates clickstream events into session-level vectors (RFM metrics, cart-to-purchase ratios).
+   - Exports optimized columnar Parquet files (`df_clean.parquet` & `session_dataset.parquet`) to `/data/processed/`.
+
+4. **Analytics Engine (Spark SQL)**
+   - Registers temporary relational views (`events` and `sessions`).
+   - Executes complex window functions, retention metrics, conversion funnels, and sales distributions.
+
+5. **Machine Learning Pipeline (Spark MLlib & XGBoost)**
+   - Trains distributed `SparkXGBClassifier` for customer conversion/churn prediction.
+   - Trains `SparkXGBRegressor` for user spend estimation.
+   - Evaluates performance using RMSE, R², ROC-AUC, Precision, and Recall curves.
+
+6. **Visualization Layer (Matplotlib)**
+   - Converts Spark distributed aggregates into Pandas dataframes for zero-memory-leak plotting.
+   - Generates publication-ready static & dynamic visual charts.
+
+7. **Interactive Dashboard (HTML5 / CSS3 / JS)**
+   - Standalone web presentation (`web_dashboard.html`) and slide presentation deck (`presentation.html`).
+   - Features responsive grid, dark glassmorphism aesthetic, interactive metric counters, and light-box plot magnification.
+
+8. **Orchestration & Workflow (Apache Airflow)**
+   - Automated DAG execution using Papermill.
+   - Handles parallel task execution, failure retries, dependency enforcement, and parameterized run logging.
+
+---
+
+## 📁 Repository Structure
+
+```
+NTI_Big_data_project/
+├── 🖼️ architecture_proposal.jpeg   # System Architecture & Flow Proposal Diagram
+├── 🖼️ team_banner.jpeg             # Project Team Roster Banner
+│
+├── 📁 preprocessing_EDA/           # STAGE 1: Data Preparation & Exploration
+│   └── 📜 Pre_and_eda.ipynb        #   - Clean data, feature extraction, session aggregation
+│                                   #   - Exports df_clean.parquet & session_dataset.parquet
+│
+├── 📁 ml/                          # STAGE 2: Machine Learning Modeling
+│   └── 📜 ML_models.ipynb          #   - Spark MLlib + XGBoost classification & regression
+│                                   #   - Model performance curves & metrics evaluation
+│
+├── 📁 sql/                         # STAGE 3: Analytical SQL Queries
+│   └── 📜 SQL_analysis.ipynb       #   - 10+ Complex Spark SQL analytical queries
+│                                   #   - Business KPI distributions & funnels
+│
+├── 📁 dags/                        # ORCHESTRATION: Apache Airflow DAG
+│   └── 📜 ecommerce_pipeline_dag.py#   - Papermill execution DAG for sequential & parallel tasks
+│
+├── 🌐 web_dashboard.html           # Interactive HTML5/CSS3/JS Web Dashboard
+└── 📽️ presentation.html            # Executive Big Data Pipeline Slide Presentation Deck
+```
+
+---
+
+## ⚡ Notebook Split & Architecture
+
+To optimize memory usage and allow modular scaling, the original single notebook was split into **3 isolated stages**:
+
+```
+                  ┌──────────────────────┐
+                  │ Pre_and_eda.ipynb    │  (Stage 1: Preprocessing & Feature Engineering)
+                  └──────────┬───────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              ▼                             ▼
+   ┌────────────────────┐        ┌────────────────────┐
+   │  ML_models.ipynb   │        │ SQL_analysis.ipynb │  (Stages 2 & 3: Run in Parallel!)
+   └────────────────────┘        └────────────────────┘
+```
+
+> [!TIP]
+> **Why Parallel Execution Works**: Both Stage 2 (ML) and Stage 3 (SQL) consume the serialized `.parquet` artifacts output by Stage 1. They do not depend on each other and can execute concurrently on separate worker nodes!
+
+---
+
+## 📦 Scoped Dependencies
+
+Each notebook manages its dependencies efficiently without installing unnecessary bloat:
+
+| Notebook Stage | Installed Dependencies | Purpose |
+| :--- | :--- | :--- |
+| `Pre_and_eda.ipynb` | `pyarrow` | Optimized Parquet writing & `.toPandas()` plotting conversion |
+| `ML_models.ipynb` | `pyarrow`, `xgboost[spark]` | Parquet reading, plotting, and distributed `SparkXGBoost` modeling |
+| `SQL_analysis.ipynb` | `pyarrow` | Parquet reading & Spark SQL visualization plotting |
+
+---
+
+## 🚀 Getting Started
+
+### Option A: Manual Execution (Top-to-Bottom)
+
+Run the notebooks sequentially or in parallel after Stage 1 finishes:
+
+```bash
+# 1. Execute Preprocessing & Feature Engineering
+jupyter nbconvert --to notebook --execute preprocessing_EDA/Pre_and_eda.ipynb
+
+# 2. Execute ML and SQL stages in parallel or sequentially
+jupyter nbconvert --to notebook --execute ml/ML_models.ipynb
+jupyter nbconvert --to notebook --execute sql/SQL_analysis.ipynb
+```
+
+### Option B: Automated Airflow Orchestration
+
+1. Deploy the project folder into your Airflow `$AIRFLOW_HOME/dags/` directory.
+2. Install worker dependencies:
+   ```bash
+   pip install papermill ipykernel pyspark pyarrow xgboost
    ```
+3. Trigger the DAG:
+   ```bash
    airflow dags trigger ecommerce_pyspark_pipeline
    ```
 
-Each task executes its notebook with papermill and saves a fully-executed
-copy under `executed_runs/` for later inspection — if a notebook errors, the
-task (and DAG) fails.
+---
 
-## Notes
+## 📊 Interactive Web Dashboard & Presentation
 
-- The original notebook had `HDFS_PATH = "hdfs://namenode:9000/test/2019-Oct.csv"`
-  hard-coded in Stage 1 — left as-is, since you asked for no code edits.
-  Point it at your actual HDFS path if it differs.
-- Stage 1's Spark session setup has a pre-existing paren/indentation quirk
-  in the original notebook (the `spark.conf.set(...)` calls sit inside the
-  same `(...)` as the `SparkSession.builder` chain) — also left untouched,
-  since that's your original code, not something introduced by the split.
+The project includes two standalone interactive web applications built with **HTML5, CSS3 (Glassmorphism & Neon Dark Theme), and Vanilla JavaScript**:
+
+1. **`web_dashboard.html`**:
+   - Live KPI counter cards (Total Revenue, Active Users, Conversions, Session Metrics).
+   - High-resolution plot gallery with **Lightbox Zoom** capability.
+   - Filterable controls for exploring pipeline results.
+
+2. **`presentation.html`**:
+   - Executive presentation deck outlining the Big Data pipeline design, HDFS architecture, Spark SQL insights, and XGBoost accuracy metrics.
+
+---
+
+<div align="center">
+
+### 🎓 NTI Big Data Final Project
+*Crafted with ❤️ by Team Leader **Omar Mahmoud Elsayed** and Team*
+
+</div>
+
+
